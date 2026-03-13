@@ -53,7 +53,7 @@ export default function USMap() {
         style={{ width: "100%", height: "auto" }}
       >
         <Geographies geography={GEO_URL}>
-          {({ geographies }) =>
+          {({ geographies }: { geographies: any[] }) =>
             geographies.map((geo) => {
               const name = geo.properties.name as string;
               const colors = getColor(name);
@@ -61,11 +61,11 @@ export default function USMap() {
                 <Geography
                   key={geo.rsmKey}
                   geography={geo}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: any) => {
                     const data = getStateData(name);
                     setTooltip({ x: e.clientX, y: e.clientY, data });
                   }}
-                  onMouseMove={(e) => {
+                  onMouseMove={(e: any) => {
                     setTooltip((prev) => prev ? { ...prev, x: e.clientX, y: e.clientY } : prev);
                   }}
                   onMouseLeave={() => setTooltip(null)}
