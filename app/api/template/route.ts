@@ -102,8 +102,8 @@ export async function GET() {
     ws.getRow(rowNum).height = 22;
   });
 
-  // Rows 7–206 — empty user rows with dropdowns
-  for (let r = 7; r <= 206; r++) {
+  // Rows 7–1000 — empty user rows with dropdowns
+  for (let r = 7; r <= 1000; r++) {
     const bg = r % 2 === 0 ? "FFF9FAFB" : "FFFFFFFF";
     for (let c = 1; c <= 5; c++) {
       const cell = ws.getCell(r, c);
@@ -112,6 +112,10 @@ export async function GET() {
       cell.alignment = { vertical: "middle", indent: 1 };
     }
     ws.getRow(r).height = 22;
+  }
+
+  // Dropdowns for all data rows (examples + user rows): cols B and C, rows 4–1000
+  for (let r = 4; r <= 1000; r++) {
     ws.getCell(r, 2).dataValidation = {
       type: "list", allowBlank: true,
       formulae: [`Reference!$B$1:$B$${CATEGORIES.length}`],
