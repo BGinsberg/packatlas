@@ -34,6 +34,7 @@ export interface SKU {
   category: string;
   material: string;
   weightGrams: number;
+  annualUnitsPerState: Record<string, number>; // units sold per state per year
   states: string[];
   riskLevel: ComplianceLevel;
   eprObligation: number; // annual $ estimate
@@ -296,6 +297,7 @@ export const skus: SKU[] = [
     category: "Snack Food",
     material: "Multi-layer Plastic Film",
     weightGrams: 12,
+    annualUnitsPerState: { CA: 80000, NY: 70000, TX: 60000, FL: 55000, IL: 40000, WA: 35000, OR: 30000, CO: 25000 },
     states: ["CA", "NY", "TX", "FL", "IL", "WA", "OR", "CO"],
     riskLevel: "red",
     eprObligation: 48200,
@@ -306,6 +308,7 @@ export const skus: SKU[] = [
     category: "Beverage",
     material: "Virgin HDPE Plastic",
     weightGrams: 22,
+    annualUnitsPerState: { CA: 90000, OR: 40000, ME: 20000, MN: 35000, NJ: 45000, NY: 80000, MA: 30000 },
     states: ["CA", "OR", "ME", "MN", "NJ", "NY", "MA"],
     riskLevel: "red",
     eprObligation: 62400,
@@ -316,6 +319,7 @@ export const skus: SKU[] = [
     category: "Fresh Produce",
     material: "PVC Clamshell",
     weightGrams: 35,
+    annualUnitsPerState: { CA: 60000, CO: 20000, WA: 25000, MA: 18000, CT: 12000 },
     states: ["CA", "CO", "WA", "MA", "CT"],
     riskLevel: "red",
     eprObligation: 37800,
@@ -326,6 +330,7 @@ export const skus: SKU[] = [
     category: "Beverage",
     material: "Polystyrene (#6 Plastic)",
     weightGrams: 8,
+    annualUnitsPerState: { OR: 50000, ME: 30000, MN: 55000, MD: 40000, VT: 15000 },
     states: ["OR", "ME", "MN", "MD", "VT"],
     riskLevel: "red",
     eprObligation: 29100,
@@ -336,6 +341,7 @@ export const skus: SKU[] = [
     category: "Deli / Meat",
     material: "LDPE Plastic Bag",
     weightGrams: 5,
+    annualUnitsPerState: { NJ: 70000, HI: 20000, CA: 90000, NY: 85000 },
     states: ["NJ", "HI", "CA", "NY"],
     riskLevel: "red",
     eprObligation: 18500,
@@ -346,6 +352,7 @@ export const skus: SKU[] = [
     category: "Snack Food",
     material: "Kraft Paper + PE Liner",
     weightGrams: 4,
+    annualUnitsPerState: { CA: 200000, TX: 180000, FL: 150000, NY: 160000, OH: 120000 },
     states: ["CA", "TX", "FL", "NY", "OH"],
     riskLevel: "yellow",
     eprObligation: 8200,
@@ -356,6 +363,7 @@ export const skus: SKU[] = [
     category: "Dairy",
     material: "rPET (30% Recycled)",
     weightGrams: 18,
+    annualUnitsPerState: { TX: 90000, FL: 80000, GA: 50000, NC: 45000, VA: 40000 },
     states: ["TX", "FL", "GA", "NC", "VA"],
     riskLevel: "green",
     eprObligation: 0,
@@ -366,6 +374,7 @@ export const skus: SKU[] = [
     category: "Household",
     material: "rHDPE (50% Recycled)",
     weightGrams: 65,
+    annualUnitsPerState: { CA: 25000, OR: 15000, WA: 18000, CO: 12000, ME: 8000 },
     states: ["CA", "OR", "WA", "CO", "ME"],
     riskLevel: "yellow",
     eprObligation: 11400,
@@ -376,6 +385,7 @@ export const skus: SKU[] = [
     category: "Pet Food",
     material: "Mono-material PE Film",
     weightGrams: 28,
+    annualUnitsPerState: { TX: 40000, FL: 35000, OH: 30000, PA: 28000, NC: 25000 },
     states: ["TX", "FL", "OH", "PA", "NC"],
     riskLevel: "green",
     eprObligation: 0,
@@ -386,6 +396,7 @@ export const skus: SKU[] = [
     category: "Snack Food",
     material: "Multi-layer Plastic Film",
     weightGrams: 40,
+    annualUnitsPerState: { CA: 100000, NY: 90000, TX: 80000, IL: 60000, WA: 45000, OR: 40000, MN: 35000 },
     states: ["CA", "NY", "TX", "IL", "WA", "OR", "MN"],
     riskLevel: "red",
     eprObligation: 54600,

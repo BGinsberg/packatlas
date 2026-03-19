@@ -1,6 +1,7 @@
 import Link from "next/link";
 import NavBar from "@/components/NavBar";
 import USMap from "@/components/USMap";
+import OnboardingBanner from "@/components/OnboardingBanner";
 import { skus } from "@/lib/data";
 
 export default function Dashboard() {
@@ -14,6 +15,7 @@ export default function Dashboard() {
       <NavBar active="dashboard" />
 
       <div className="max-w-7xl mx-auto px-8 py-8">
+        <OnboardingBanner />
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-1">Compliance Dashboard</h1>
           <p className="text-white/50 text-sm">Hover over any state to see regulations, risks, and material recommendations.</p>
@@ -53,6 +55,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-4 text-xs text-white/60">
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-500 inline-block"></span>Critical</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span>Moderate</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-300 inline-block"></span>Verify Labeling</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-500 inline-block"></span>Compliant</span>
             </div>
           </div>

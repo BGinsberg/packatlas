@@ -20,16 +20,16 @@ export default function Home() {
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link
-            href="/dashboard"
+            href="/onboarding"
             className="bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-3 rounded-lg transition-colors"
           >
-            View Demo Dashboard
+            Get Started →
           </Link>
           <Link
-            href="/skus"
-            className="border border-white/20 hover:border-white/40 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+            href="/dashboard"
+            className="border border-white/20 hover:border-white/40 text-white/60 hover:text-white text-sm px-6 py-3 rounded-lg transition-colors"
           >
-            View SKUs
+            Skip to demo
           </Link>
         </div>
       </div>

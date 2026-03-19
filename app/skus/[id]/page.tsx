@@ -1,5 +1,7 @@
 import Link from "next/link";
 import NavBar from "@/components/NavBar";
+import ProducerQuiz from "@/components/ProducerQuiz";
+import LabelingQuiz from "@/components/LabelingQuiz";
 import { skus, stateData, defaultGreenState, ComplianceLevel } from "@/lib/data";
 import { notFound } from "next/navigation";
 
@@ -171,6 +173,38 @@ export default async function SKUDetail({ params }: { params: Promise<{ id: stri
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Producer Eligibility Check */}
+        <div className="mb-8 bg-blue-500/10 border border-blue-500/30 rounded-2xl p-6">
+          <div className="flex items-start justify-between gap-6">
+            <div>
+              <div className="text-blue-400 text-xs font-semibold uppercase tracking-widest mb-2">Important</div>
+              <h3 className="text-white font-bold text-lg mb-1">Do these EPR obligations actually apply to you?</h3>
+              <p className="text-white/50 text-sm leading-relaxed max-w-xl">
+                Each state defines "producer" differently. Depending on your role in the supply chain, your revenue, and your sales volume, you may or may not be the responsible party. Run this quick check to find out.
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <ProducerQuiz skuName={sku.name} weightGrams={sku.weightGrams} annualUnitsPerState={sku.annualUnitsPerState} />
+            </div>
+          </div>
+        </div>
+
+        {/* Labeling Compliance Check */}
+        <div className="mb-8 bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6">
+          <div className="flex items-start justify-between gap-6">
+            <div>
+              <div className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-2">Labeling</div>
+              <h3 className="text-white font-bold text-lg mb-1">Is your packaging labeling compliant?</h3>
+              <p className="text-white/50 text-sm leading-relaxed max-w-xl">
+                FTC Green Guides and California SB 343 impose strict rules on recycling symbols, compostable claims, and biodegradable language. Run this check to flag potential violations.
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <LabelingQuiz skuName={sku.name} />
+            </div>
+          </div>
         </div>
 
         {/* Recommendation Box */}

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
-import { stateData, defaultGreenState, StateData, ComplianceLevel } from "@/lib/data";
+import { stateData, defaultGreenState, StateData, skus } from "@/lib/data";
+
+export const LABELING_CLEARED_KEY = "packatlas_labeling_cleared";
 
 const stateNameToAbbr: Record<string, string> = {
   Alabama:"AL",Alaska:"AK",Arizona:"AZ",Arkansas:"AR",California:"CA",Colorado:"CO",
@@ -20,30 +22,54 @@ const stateNameToAbbr: Record<string, string> = {
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
-const colorMap: Record<ComplianceLevel, { fill: string; hover: string; border: string }> = {
-  red: { fill: "#fca5a5", hover: "#f87171", border: "#fecaca" },
-  yellow: { fill: "#fde68a", hover: "#fcd34d", border: "#fef08a" },
-  green: { fill: "#86efac", hover: "#4ade80", border: "#bbf7d0" },
+type MapLevel = "red" | "yellow" | "orange" | "green";
+
+const colorMap: Record<MapLevel, { fill: string; hover: string; border: string }> = {
+  red:    { fill: "#fca5a5", hover: "#f87171",  border: "#fecaca" },
+  yellow: { fill: "#fde68a", hover: "#fcd34d",  border: "#fef08a" },
+  orange: { fill: "#bbf7d0", hover: "#86efac",  border: "#d1fae5" }, // light green — review pending
+  green:  { fill: "#4ade80", hover: "#22c55e",  border: "#86efac" }, // dark green — fully cleared
+};
+
+const levelLabel: Record<MapLevel, string> = {
+  red:    "Critical — Action Required",
+  yellow: "Moderate Risk — Monitor",
+  orange: "No Active EPR — Verify Labeling",
+  green:  "Compliant",
 };
 
 interface TooltipState {
   x: number;
   y: number;
   data: StateData;
+  mapLevel: MapLevel;
 }
 
 export default function USMap() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [labelingCleared, setLabelingCleared] = useState<string[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LABELING_CLEARED_KEY);
+      if (stored) setLabelingCleared(JSON.parse(stored));
+    } catch {}
+  }, []);
 
   function getStateData(name: string): StateData {
     if (stateData[name]) return stateData[name];
-    return { name, abbr: "", ...defaultGreenState };
+    return { name, abbr: stateNameToAbbr[name] ?? "", ...defaultGreenState };
   }
 
-  function getColor(name: string) {
+  function getMapLevel(name: string): MapLevel {
     const d = getStateData(name);
-    return colorMap[d.level];
+    if (d.level !== "green") return d.level;
+    const abbr = stateNameToAbbr[name];
+    if (!abbr) return "green";
+    const hasSKUs = skus.some((s) => s.states.includes(abbr));
+    if (!hasSKUs || labelingCleared.includes(abbr)) return "green";
+    return "orange";
   }
 
   return (
@@ -56,14 +82,14 @@ export default function USMap() {
           {({ geographies }: { geographies: any[] }) =>
             geographies.map((geo) => {
               const name = geo.properties.name as string;
-              const colors = getColor(name);
+              const mapLevel = getMapLevel(name);
+              const colors = colorMap[mapLevel];
               return (
                 <Geography
                   key={geo.rsmKey}
                   geography={geo}
                   onMouseEnter={(e: any) => {
-                    const data = getStateData(name);
-                    setTooltip({ x: e.clientX, y: e.clientY, data });
+                    setTooltip({ x: e.clientX, y: e.clientY, data: getStateData(name), mapLevel });
                   }}
                   onMouseMove={(e: any) => {
                     setTooltip((prev) => prev ? { ...prev, x: e.clientX, y: e.clientY } : prev);
@@ -75,7 +101,7 @@ export default function USMap() {
                   }}
                   style={{
                     default: { fill: colors.fill, stroke: "#0a0f1e", strokeWidth: 0.5, outline: "none" },
-                    hover: { fill: colors.hover, stroke: "#0a0f1e", strokeWidth: 1, outline: "none", cursor: "pointer" },
+                    hover:   { fill: colors.hover, stroke: "#0a0f1e", strokeWidth: 1, outline: "none", cursor: "pointer" },
                     pressed: { fill: colors.hover, outline: "none" },
                   }}
                 />
@@ -96,94 +122,77 @@ export default function USMap() {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <div className="font-bold text-white text-base">{tooltip.data.name}</div>
-                <div
-                  className={`text-xs font-semibold uppercase tracking-wider mt-0.5 ${
-                    tooltip.data.level === "red"
-                      ? "text-red-400"
-                      : tooltip.data.level === "yellow"
-                      ? "text-yellow-400"
-                      : "text-green-400"
-                  }`}
-                >
-                  {tooltip.data.level === "red"
-                    ? "Critical — Action Required"
-                    : tooltip.data.level === "yellow"
-                    ? "Moderate Risk — Monitor"
-                    : "Compliant"}
+                <div className={`text-xs font-semibold uppercase tracking-wider mt-0.5 ${
+                  tooltip.mapLevel === "red"    ? "text-red-400" :
+                  tooltip.mapLevel === "yellow" ? "text-yellow-400" :
+                  tooltip.mapLevel === "orange" ? "text-green-300" :
+                  "text-green-400"
+                }`}>
+                  {levelLabel[tooltip.mapLevel]}
                 </div>
               </div>
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  tooltip.data.level === "red"
-                    ? "bg-red-500"
-                    : tooltip.data.level === "yellow"
-                    ? "bg-yellow-400"
-                    : "bg-green-500"
-                }`}
-              />
+              <div className={`w-3 h-3 rounded-full ${
+                tooltip.mapLevel === "red"    ? "bg-red-500" :
+                tooltip.mapLevel === "yellow" ? "bg-yellow-400" :
+                tooltip.mapLevel === "orange" ? "bg-green-300" :
+                "bg-green-500"
+              }`} />
             </div>
 
             {/* Regulation */}
             <div className="mb-3">
               <div className="text-white/40 text-xs uppercase tracking-wider mb-1">Regulation</div>
-              <div className="text-blue-300 text-xs font-medium">{tooltip.data.regulation}</div>
+              <div className="text-blue-300 text-xs font-medium">
+                {tooltip.mapLevel === "orange"
+                  ? "No Active EPR — Labeling Review Required"
+                  : tooltip.data.regulation}
+              </div>
             </div>
 
             {/* Issue */}
             <div className="mb-3">
-              <div className="text-white/40 text-xs uppercase tracking-wider mb-1">Issue</div>
-              <div className="text-white/80 text-xs leading-relaxed">{tooltip.data.issue}</div>
+              <div className="text-white/40 text-xs uppercase tracking-wider mb-1">
+                {tooltip.mapLevel === "orange" ? "Why Orange?" : "Issue"}
+              </div>
+              <div className="text-white/80 text-xs leading-relaxed">
+                {tooltip.mapLevel === "orange"
+                  ? "This state has no active EPR law, but federal FTC Green Guides and applicable state labeling laws may still apply. Click to run the labeling compliance check for each SKU."
+                  : tooltip.data.issue}
+              </div>
             </div>
 
-            {/* Cost Comparison */}
+            {/* Cost Comparison (non-green/orange only) */}
             {tooltip.data.level !== "green" && (
               <div className="border-t border-white/10 pt-3">
                 <div className="text-white/40 text-xs uppercase tracking-wider mb-2">Cost Comparison (per unit)</div>
                 <div className="grid grid-cols-2 gap-2">
-                  {/* Current */}
                   <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2">
                     <div className="text-red-400 text-xs font-semibold mb-1">Current</div>
                     <div className="text-white text-xs font-medium">{tooltip.data.currentMaterial.name}</div>
-                    <div className="text-white/60 text-xs mt-1">
-                      Material: ${tooltip.data.currentMaterial.costPerUnit.toFixed(2)}
-                    </div>
-                    <div className="text-red-400 text-xs">
-                      EPR Fee: ${tooltip.data.currentMaterial.eprFeePerUnit.toFixed(2)}
-                    </div>
+                    <div className="text-white/60 text-xs mt-1">Material: ${tooltip.data.currentMaterial.costPerUnit.toFixed(2)}</div>
+                    <div className="text-red-400 text-xs">EPR Fee: ${tooltip.data.currentMaterial.eprFeePerUnit.toFixed(2)}</div>
                     <div className="text-white font-bold text-xs mt-1 border-t border-white/10 pt-1">
                       Total: ${(tooltip.data.currentMaterial.costPerUnit + tooltip.data.currentMaterial.eprFeePerUnit).toFixed(2)}
                     </div>
                   </div>
-                  {/* Alternative */}
                   <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2">
                     <div className="text-green-400 text-xs font-semibold mb-1">Recommended</div>
                     <div className="text-white text-xs font-medium">{tooltip.data.alternativeMaterial.name}</div>
-                    <div className="text-white/60 text-xs mt-1">
-                      Material: ${tooltip.data.alternativeMaterial.costPerUnit.toFixed(2)}
-                    </div>
-                    <div className="text-green-400 text-xs">
-                      EPR Fee: ${tooltip.data.alternativeMaterial.eprFeePerUnit.toFixed(2)}
-                    </div>
+                    <div className="text-white/60 text-xs mt-1">Material: ${tooltip.data.alternativeMaterial.costPerUnit.toFixed(2)}</div>
+                    <div className="text-green-400 text-xs">EPR Fee: ${tooltip.data.alternativeMaterial.eprFeePerUnit.toFixed(2)}</div>
                     <div className="text-white font-bold text-xs mt-1 border-t border-white/10 pt-1">
                       Total: ${(tooltip.data.alternativeMaterial.costPerUnit + tooltip.data.alternativeMaterial.eprFeePerUnit).toFixed(2)}
                     </div>
                   </div>
                 </div>
-                {/* Savings */}
                 {(() => {
-                  const currentTotal = tooltip.data.currentMaterial.costPerUnit + tooltip.data.currentMaterial.eprFeePerUnit;
-                  const altTotal = tooltip.data.alternativeMaterial.costPerUnit + tooltip.data.alternativeMaterial.eprFeePerUnit;
-                  const savings = currentTotal - altTotal;
-                  if (savings > 0) {
-                    return (
-                      <div className="mt-2 bg-blue-500/10 border border-blue-500/20 rounded-lg p-2 text-center">
-                        <span className="text-blue-400 text-xs font-bold">
-                          Save ${savings.toFixed(2)}/unit by switching materials
-                        </span>
-                      </div>
-                    );
-                  }
-                  return null;
+                  const savings = (tooltip.data.currentMaterial.costPerUnit + tooltip.data.currentMaterial.eprFeePerUnit)
+                    - (tooltip.data.alternativeMaterial.costPerUnit + tooltip.data.alternativeMaterial.eprFeePerUnit);
+                  return savings > 0 ? (
+                    <div className="mt-2 bg-blue-500/10 border border-blue-500/20 rounded-lg p-2 text-center">
+                      <span className="text-blue-400 text-xs font-bold">Save ${savings.toFixed(2)}/unit by switching materials</span>
+                    </div>
+                  ) : null;
                 })()}
               </div>
             )}
