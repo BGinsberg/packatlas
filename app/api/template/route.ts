@@ -84,38 +84,35 @@ export async function GET() {
   });
   ws.getRow(3).height = 18;
 
-  // Rows 4–6 — example data
+  // Rows 4–6 — example data values
   const examples: (string | number)[][] = [
     ["Sparkling Water 12oz",  "Beverage",   "Virgin PET Plastic",         500000, "CA;NY;TX;FL;WA"],
     ["Snack Bar Wrapper",     "Snack Food", "Multi-layer Plastic Film",    250000, "CA;OR;ME;CO;MN"],
     ["Paper Grocery Bag",     "Retail",     "Kraft Paper / Paperboard",    100000, "All"],
   ];
-  examples.forEach((ex, idx) => {
-    const rowNum = 4 + idx;
-    ex.forEach((val, colIdx) => {
-      const cell = ws.getCell(rowNum, colIdx + 1);
-      cell.value = val;
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: idx % 2 === 0 ? "FFF0F4FF" : "FFFAFBFF" } };
-      cell.font = { color: { argb: "FF6B7280" }, size: 10, italic: true };
-      cell.alignment = { vertical: "middle", indent: 1 };
-    });
-    ws.getRow(rowNum).height = 22;
-  });
 
-  // Rows 7–1000 — empty user rows with dropdowns
-  for (let r = 7; r <= 1000; r++) {
-    const bg = r % 2 === 0 ? "FFF9FAFB" : "FFFFFFFF";
+  // Single pass: rows 4–1000 — styling, dropdowns, and example values
+  for (let r = 4; r <= 1000; r++) {
+    const exIdx = r - 4; // 0, 1, 2 for example rows; negative/irrelevant after
+    const isExample = exIdx >= 0 && exIdx < examples.length;
+    const bg = isExample
+      ? (exIdx % 2 === 0 ? "FFF0F4FF" : "FFFAFBFF")
+      : (r % 2 === 0 ? "FFF9FAFB" : "FFFFFFFF");
+
     for (let c = 1; c <= 5; c++) {
       const cell = ws.getCell(r, c);
+      if (isExample) {
+        cell.value = examples[exIdx][c - 1];
+        cell.font = { color: { argb: "FF6B7280" }, size: 10, italic: true };
+      } else {
+        cell.font = { size: 10 };
+      }
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bg } };
-      cell.font = { size: 10 };
       cell.alignment = { vertical: "middle", indent: 1 };
     }
     ws.getRow(r).height = 22;
-  }
 
-  // Dropdowns for all data rows (examples + user rows): cols B and C, rows 4–1000
-  for (let r = 4; r <= 1000; r++) {
+    // Dropdowns on category (col 2) and material (col 3)
     ws.getCell(r, 2).dataValidation = {
       type: "list", allowBlank: true,
       formulae: [`Reference!$B$1:$B$${CATEGORIES.length}`],
