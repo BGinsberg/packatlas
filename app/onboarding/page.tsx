@@ -306,12 +306,14 @@ function Step1({
                 <div className="text-white/20 text-4xl mb-4">↑</div>
                 <div className="text-white font-medium mb-1">Drop your CSV file here</div>
                 <div className="text-white/40 text-sm mb-4">or click to browse</div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); downloadTemplate(); }}
-                  className="text-xs text-blue-400 hover:text-blue-300 border border-blue-500/30 px-3 py-1.5 rounded-lg transition-colors"
+                <a
+                  href="/api/template"
+                  download="packatlas_sku_template.xlsx"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs text-blue-400 hover:text-blue-300 border border-blue-500/30 px-3 py-1.5 rounded-lg transition-colors inline-block"
                 >
                   Download template →
-                </button>
+                </a>
               </>
             )}
           </div>
